@@ -62,25 +62,25 @@ func (s *service) Login(auth AuthLogin) (*ResponseLogin, error) {
 		return nil, utils.HandleErrorValidator(err)
 	}
 
-	User, err := s.repository.FindUserByEmail(auth.Email)
+	user, err := s.repository.FindUserByEmail(auth.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	err = utils.VerifyPassword(User.Password, auth.Password)
+	err = utils.VerifyPassword(user.Password, auth.Password)
 	if err != nil {
-		fmt.Println(User.Password)
+		fmt.Println(user.Password)
 		return nil, errors.New("wrong password")
 	}
 
-	restoken, err := s.repository.GenerateTokenAuth(User.ID, User.Email)
+	restoken, err := s.repository.GenerateTokenAuth(user.ID, user.Email)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ResponseLogin{
-		Email:   User.Email,
-		Package: User.Packages,
+		Email:   user.Email,
+		Package: user.Packages,
 		Token:   *restoken,
 	}, nil
 }
