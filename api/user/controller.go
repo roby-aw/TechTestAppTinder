@@ -62,7 +62,10 @@ func (Controller *Controller) Register(c *fiber.Ctx) error {
 	var err error
 	data.File, err = c.FormFile("file")
 	if err != nil {
-		return err
+		return c.Status(400).JSON(fiber.Map{
+			"code":    400,
+			"message": "please upload foto profile",
+		})
 	}
 
 	err = Controller.service.RegisterUser(data)

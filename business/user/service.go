@@ -88,7 +88,7 @@ func (s *service) Login(auth AuthLogin) (*ResponseLogin, error) {
 func (s *service) RegisterUser(data Register) error {
 	err := s.validate.Struct(&data)
 	if err != nil {
-		return err
+		return utils.HandleErrorValidator(err)
 	}
 
 	_, err = s.repository.FindUserByEmail(data.Email)
