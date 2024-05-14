@@ -2,7 +2,7 @@ name: Build Go App
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build-app:
