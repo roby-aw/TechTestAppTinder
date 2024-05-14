@@ -1,0 +1,39 @@
+name: Build Go App
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.5
+
+      - name: Build Docker image
+        run: docker build --build-arg dbUrl='${{ secrets.DBURL }}' --build-arg dbUser=${{ secrets.DBUSER }} --build-arg dbPass=${{ secrets.DBPASS }} --build-arg dbName=${{ secrets.DBNAME }} --build-arg dbSecret=${{ secrets.DBSECRET }} --build-arg aws_s3_host='${{ secrets.AWSS3HOST }}' --build-arg aws_s3_access=${{ secrets.AWSS3ACCESS }} --build-arg aws_s3_secret='${{ secrets.AWSS3SECRET }}' --build-arg aws_s3_bucket=${{ secrets.AWSS3BUCKET }} --build-arg aws_s3_zone=${{ secrets.AWSS3ZONE }} --build-arg redis_host=${{ secrets.REDISHOST }} --build-arg redis_pass=${{ secrets.REDISPASS }} -t robyawaluddin06/api-tinder:latest .
+
+      - name: Log in to Docker registry
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Push Docker image
+        run: docker push robyawaluddin06/api-tinder:latest
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          key: ${{ secrets.KEY }}
+          script: |
+            docker stop api-tinder
+            docker rm api-tinder
+            docker rmi robyawaluddin06/api-tinder:latest
+            docker pull robyawaluddin06/api-tinder:latest
+            docker run --restart always -d --name api-tinder -p 3080:8080 robyawaluddin06/api-tinder:latest
